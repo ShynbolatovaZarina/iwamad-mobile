@@ -1,14 +1,44 @@
 import { router } from 'expo-router';
 import { useState } from 'react';
-import { FlatList, StyleSheet, Text, TextInput, View } from 'react-native';
+import {
+  ActivityIndicator,
+  FlatList,
+  Pressable,
+  StyleSheet,
+  Text,
+  TextInput,
+  View,
+} from 'react-native';
 import EventRow from '../../src/components/EventRow';
-import { events } from '../../src/data/events';
+import { useEvents } from '../../src/hooks/useEvents';
 
 export default function EventsScreen() {
   const [savedIds, setSavedIds] = useState<number[]>([]);
   const [query, setQuery] = useState('');
+  const { data, isPending, isError, error, refetch, isRefetching } = useEvents();
 
-  const filtered = events.filter((e) =>
+  if (isPending) {
+    return (
+      <View style={styles.center}>
+        <ActivityIndicator size="large" />
+        <Text style={styles.status}>Loading events</Text>
+      </View>
+    );
+  }
+
+  if (isError) {
+    return (
+      <View style={styles.center}>
+        <Text style={styles.status}>Could not load events</Text>
+        <Text style={styles.errorText}>{error.message}</Text>
+        <Pressable style={styles.retry} onPress={() => refetch()}>
+          <Text style={styles.retryText}>Try again</Text>
+        </Pressable>
+      </View>
+    );
+  }
+
+  const filtered = data.filter((e) =>
     e.title.toLowerCase().includes(query.toLowerCase()),
   );
 
@@ -33,6 +63,8 @@ export default function EventsScreen() {
         data={filtered}
         keyExtractor={(e) => String(e.id)}
         keyboardShouldPersistTaps="handled"
+        refreshing={isRefetching}
+        onRefresh={() => refetch()}
         renderItem={({ item }) => (
           <EventRow
             event={item}
@@ -52,6 +84,35 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: '#fff',
     padding: 16,
+  },
+  center: {
+    flex: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: '#fff',
+    padding: 16,
+  },
+  status: {
+    marginTop: 12,
+    fontSize: 18,
+    fontWeight: '600',
+  },
+  errorText: {
+    marginTop: 8,
+    fontSize: 16,
+    color: '#b91c1c',
+  },
+  retry: {
+    minHeight: 44,
+    marginTop: 16,
+    paddingHorizontal: 20,
+    justifyContent: 'center',
+    borderRadius: 8,
+    backgroundColor: '#1d4ed8',
+  },
+  retryText: {
+    fontSize: 16,
+    color: '#fff',
   },
   hint: {
     fontSize: 14,
