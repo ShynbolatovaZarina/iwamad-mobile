@@ -1,4 +1,4 @@
-import { Link } from 'expo-router';
+import { Link, router } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import { useState } from 'react';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
@@ -19,6 +19,9 @@ export default function HomeScreen() {
           <Text style={styles.buttonText}>Events</Text>
         </Pressable>
       </Link>
+      <Pressable onPress={() => router.push('/account')} style={styles.button}>
+        <Text style={styles.buttonText}>Account</Text>
+      </Pressable>
       <StatusBar style="auto" />
     </View>
   );
